@@ -15,9 +15,14 @@ public class DBConnection {
     DBCreation.initDB();
   }
 
+  private static Connection connection;
+
   public static Connection getConnection() {
     try {
-      return DriverManager.getConnection(URL, USER, PASSWORD);
+      if (connection == null || connection.isClosed()) {
+        connection = DriverManager.getConnection(URL, USER, PASSWORD);
+      }
+      return connection;
     } catch (SQLException e) {
       System.out.println("Connection Failed: " + e.getMessage());
       return null;

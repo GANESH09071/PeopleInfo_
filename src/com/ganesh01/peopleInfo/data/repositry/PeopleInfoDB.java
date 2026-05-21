@@ -56,8 +56,7 @@ public class PeopleInfoDB {
     }
 
     int nextId = 1;
-    try (Connection conn = DBConnection.getConnection();
-        PreparedStatement stmt = conn.prepareStatement("SELECT COUNT(*) FROM employees");
+    try (PreparedStatement stmt = DBConnection.getConnection().prepareStatement("SELECT COUNT(*) FROM employees");
         ResultSet rs = stmt.executeQuery()) {
       if (rs.next()) {
         nextId = rs.getInt(1) + 1;
@@ -75,8 +74,7 @@ public class PeopleInfoDB {
         "INSERT INTO employees (employeeId, name, email, password, mobileNo, dob, role, department,"
             + " designation, reportingTo, status, createdAt) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?,"
             + " ?, ?)";
-    try (Connection conn = DBConnection.getConnection();
-        PreparedStatement pstmt = conn.prepareStatement(sql)) {
+    try (PreparedStatement pstmt = DBConnection.getConnection().prepareStatement(sql)) {
 
       pstmt.setString(1, employee.getEmployeeId());
       pstmt.setString(2, employee.getName());
@@ -102,8 +100,7 @@ public class PeopleInfoDB {
 
   public Employee validateUser(String email, String password) {
     String sql = "SELECT * FROM employees WHERE email = ? AND password = ? AND status = 'ACTIVE'";
-    try (Connection conn = DBConnection.getConnection();
-        PreparedStatement pstmt = conn.prepareStatement(sql)) {
+    try (PreparedStatement pstmt = DBConnection.getConnection().prepareStatement(sql)) {
       pstmt.setString(1, email.toLowerCase());
       pstmt.setString(2, password);
       try (ResultSet rs = pstmt.executeQuery()) {
@@ -117,8 +114,7 @@ public class PeopleInfoDB {
 
   public boolean isEmailExists(String email) {
     String sql = "SELECT COUNT(*) FROM employees WHERE email = ?";
-    try (Connection conn = DBConnection.getConnection();
-        PreparedStatement pstmt = conn.prepareStatement(sql)) {
+    try (PreparedStatement pstmt = DBConnection.getConnection().prepareStatement(sql)) {
       pstmt.setString(1, email.toLowerCase());
       try (ResultSet rs = pstmt.executeQuery()) {
         if (rs.next() && rs.getInt(1) > 0) return true;
@@ -132,8 +128,7 @@ public class PeopleInfoDB {
   public List<Employee> getEmployeesByRole(Employee.Role role) {
     List<Employee> result = new ArrayList<>();
     String sql = "SELECT * FROM employees WHERE role = ?";
-    try (Connection conn = DBConnection.getConnection();
-        PreparedStatement pstmt = conn.prepareStatement(sql)) {
+    try (PreparedStatement pstmt = DBConnection.getConnection().prepareStatement(sql)) {
       pstmt.setString(1, role.name());
       try (ResultSet rs = pstmt.executeQuery()) {
         while (rs.next()) result.add(extractEmployeeFromResultSet(rs));
@@ -146,8 +141,7 @@ public class PeopleInfoDB {
 
   public Employee getEmployeeByEmail(String email) {
     String sql = "SELECT * FROM employees WHERE email = ?";
-    try (Connection conn = DBConnection.getConnection();
-        PreparedStatement pstmt = conn.prepareStatement(sql)) {
+    try (PreparedStatement pstmt = DBConnection.getConnection().prepareStatement(sql)) {
       pstmt.setString(1, email.toLowerCase());
       try (ResultSet rs = pstmt.executeQuery()) {
         if (rs.next()) return extractEmployeeFromResultSet(rs);
@@ -160,8 +154,7 @@ public class PeopleInfoDB {
 
   public Employee getEmployeeById(String id) {
     String sql = "SELECT * FROM employees WHERE employeeId = ?";
-    try (Connection conn = DBConnection.getConnection();
-        PreparedStatement pstmt = conn.prepareStatement(sql)) {
+    try (PreparedStatement pstmt = DBConnection.getConnection().prepareStatement(sql)) {
       pstmt.setString(1, id);
       try (ResultSet rs = pstmt.executeQuery()) {
         if (rs.next()) return extractEmployeeFromResultSet(rs);
@@ -175,8 +168,7 @@ public class PeopleInfoDB {
   public List<Employee> getAllEmployees() {
     List<Employee> result = new ArrayList<>();
     String sql = "SELECT * FROM employees";
-    try (Connection conn = DBConnection.getConnection();
-        PreparedStatement pstmt = conn.prepareStatement(sql);
+    try (PreparedStatement pstmt = DBConnection.getConnection().prepareStatement(sql);
         ResultSet rs = pstmt.executeQuery()) {
       while (rs.next()) result.add(extractEmployeeFromResultSet(rs));
     } catch (SQLException e) {
@@ -215,8 +207,7 @@ public class PeopleInfoDB {
         "INSERT INTO timesheets (employeeId, date, loginTime, status, createdTime) VALUES (?, ?, ?,"
             + " ?, ?)";
     long now = System.currentTimeMillis();
-    try (Connection conn = DBConnection.getConnection();
-        PreparedStatement pstmt = conn.prepareStatement(sql)) {
+    try (PreparedStatement pstmt = DBConnection.getConnection().prepareStatement(sql)) {
       pstmt.setString(1, empId);
       pstmt.setDate(2, new java.sql.Date(now));
       pstmt.setTimestamp(3, new java.sql.Timestamp(now));
@@ -235,8 +226,7 @@ public class PeopleInfoDB {
     String updateSql =
         "UPDATE timesheets SET logoutTime = ?, totalHours = ?, status = ? WHERE id = ?";
 
-    try (Connection conn = DBConnection.getConnection();
-        PreparedStatement selectStmt = conn.prepareStatement(selectSql)) {
+    try (PreparedStatement selectStmt = DBConnection.getConnection().prepareStatement(selectSql)) {
 
       selectStmt.setString(1, empId);
       try (ResultSet rs = selectStmt.executeQuery()) {
@@ -247,7 +237,7 @@ public class PeopleInfoDB {
           long logoutTime = System.currentTimeMillis();
           double hours = (logoutTime - loginTime) / (1000.0 * 60 * 60);
 
-          try (PreparedStatement updateStmt = conn.prepareStatement(updateSql)) {
+          try (PreparedStatement updateStmt = DBConnection.getConnection().prepareStatement(updateSql)) {
             updateStmt.setTimestamp(1, new java.sql.Timestamp(logoutTime));
             updateStmt.setDouble(2, hours);
             updateStmt.setString(3, TimeSheet.TimesheetStatus.CHECKED_OUT.name());
@@ -264,8 +254,7 @@ public class PeopleInfoDB {
   public List<TimeSheet> getTimeSheets(String empId) {
     List<TimeSheet> list = new ArrayList<>();
     String sql = "SELECT * FROM timesheets WHERE employeeId = ?";
-    try (Connection conn = DBConnection.getConnection();
-        PreparedStatement pstmt = conn.prepareStatement(sql)) {
+    try (PreparedStatement pstmt = DBConnection.getConnection().prepareStatement(sql)) {
       pstmt.setString(1, empId);
       try (ResultSet rs = pstmt.executeQuery()) {
         while (rs.next()) list.add(extractTimeSheet(rs));
@@ -302,8 +291,7 @@ public class PeopleInfoDB {
         "INSERT INTO hiring_requirements (jobTitle, department, requiredSkills, experience,"
             + " vacancies, status, createdBy, createdTime, updatedTime) VALUES (?, ?, ?, ?, ?, ?,"
             + " ?, ?, ?)";
-    try (Connection conn = DBConnection.getConnection();
-        PreparedStatement pstmt = conn.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS)) {
+    try (PreparedStatement pstmt = DBConnection.getConnection().prepareStatement(sql, Statement.RETURN_GENERATED_KEYS)) {
 
       pstmt.setString(1, req.getJobTitle());
       pstmt.setString(2, req.getDepartment());
@@ -331,8 +319,7 @@ public class PeopleInfoDB {
   public List<HiringRequirement> getAllHiringRequirements() {
     List<HiringRequirement> list = new ArrayList<>();
     String sql = "SELECT * FROM hiring_requirements";
-    try (Connection conn = DBConnection.getConnection();
-        PreparedStatement pstmt = conn.prepareStatement(sql);
+    try (PreparedStatement pstmt = DBConnection.getConnection().prepareStatement(sql);
         ResultSet rs = pstmt.executeQuery()) {
       while (rs.next()) list.add(extractHiringReq(rs));
     } catch (SQLException e) {
@@ -343,8 +330,7 @@ public class PeopleInfoDB {
 
   public HiringRequirement getHiringRequirementById(Long id) {
     String sql = "SELECT * FROM hiring_requirements WHERE id = ?";
-    try (Connection conn = DBConnection.getConnection();
-        PreparedStatement pstmt = conn.prepareStatement(sql)) {
+    try (PreparedStatement pstmt = DBConnection.getConnection().prepareStatement(sql)) {
       pstmt.setLong(1, id);
       try (ResultSet rs = pstmt.executeQuery()) {
         if (rs.next()) return extractHiringReq(rs);
@@ -357,8 +343,7 @@ public class PeopleInfoDB {
 
   public boolean updateHiringRequirementStatus(Long id, HiringRequirement.HiringStatus status) {
     String sql = "UPDATE hiring_requirements SET status = ?, updatedTime = ? WHERE id = ?";
-    try (Connection conn = DBConnection.getConnection();
-        PreparedStatement pstmt = conn.prepareStatement(sql)) {
+    try (PreparedStatement pstmt = DBConnection.getConnection().prepareStatement(sql)) {
       pstmt.setString(1, status.name());
       pstmt.setTimestamp(2, new java.sql.Timestamp(System.currentTimeMillis()));
       pstmt.setLong(3, id);
@@ -393,8 +378,7 @@ public class PeopleInfoDB {
     String sql =
         "INSERT INTO leave_requests (employeeId, leaveType, startDate, endDate, reason, status,"
             + " approvedBy, createdTime, updatedTime) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)";
-    try (Connection conn = DBConnection.getConnection();
-        PreparedStatement pstmt = conn.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS)) {
+    try (PreparedStatement pstmt = DBConnection.getConnection().prepareStatement(sql, Statement.RETURN_GENERATED_KEYS)) {
 
       pstmt.setString(1, req.getEmployeeId());
       pstmt.setString(2, req.getLeaveType() != null ? req.getLeaveType().name() : null);
@@ -422,8 +406,7 @@ public class PeopleInfoDB {
   public List<LeaveRequest> getLeavesByEmployee(String empId) {
     List<LeaveRequest> list = new ArrayList<>();
     String sql = "SELECT * FROM leave_requests WHERE employeeId = ?";
-    try (Connection conn = DBConnection.getConnection();
-        PreparedStatement pstmt = conn.prepareStatement(sql)) {
+    try (PreparedStatement pstmt = DBConnection.getConnection().prepareStatement(sql)) {
       pstmt.setString(1, empId);
       try (ResultSet rs = pstmt.executeQuery()) {
         while (rs.next()) list.add(extractLeaveReq(rs));
@@ -437,8 +420,7 @@ public class PeopleInfoDB {
   public List<LeaveRequest> getAllLeaves() {
     List<LeaveRequest> list = new ArrayList<>();
     String sql = "SELECT * FROM leave_requests";
-    try (Connection conn = DBConnection.getConnection();
-        PreparedStatement pstmt = conn.prepareStatement(sql);
+    try (PreparedStatement pstmt = DBConnection.getConnection().prepareStatement(sql);
         ResultSet rs = pstmt.executeQuery()) {
       while (rs.next()) list.add(extractLeaveReq(rs));
     } catch (SQLException e) {
@@ -451,8 +433,7 @@ public class PeopleInfoDB {
       Long leaveId, LeaveRequest.LeaveStatus status, String approvedBy) {
     String sql =
         "UPDATE leave_requests SET status = ?, approvedBy = ?, updatedTime = ? WHERE leaveId = ?";
-    try (Connection conn = DBConnection.getConnection();
-        PreparedStatement pstmt = conn.prepareStatement(sql)) {
+    try (PreparedStatement pstmt = DBConnection.getConnection().prepareStatement(sql)) {
       pstmt.setString(1, status.name());
       pstmt.setString(2, approvedBy);
       pstmt.setLong(3, System.currentTimeMillis());

@@ -68,15 +68,15 @@ public class DBCreation {
             );
             """;
 
-    try (Connection conn = DBConnection.getConnection();
-        Statement stmt = conn.createStatement()) {
-
+    try (Connection conn = DBConnection.getConnection()) {
       if (conn != null) {
-        stmt.execute(createEmployeeTable);
-        stmt.execute(createTimesheetTable);
-        stmt.execute(createHiringRequirementTable);
-        stmt.execute(createLeaveRequestTable);
-        System.out.println("Database tables initialized successfully.");
+        try (Statement stmt = conn.createStatement()) {
+          stmt.execute(createEmployeeTable);
+          stmt.execute(createTimesheetTable);
+          stmt.execute(createHiringRequirementTable);
+          stmt.execute(createLeaveRequestTable);
+          System.out.println("Database tables initialized successfully.");
+        }
       }
     } catch (SQLException e) {
       System.out.println("Failed to initialize database: " + e.getMessage());
